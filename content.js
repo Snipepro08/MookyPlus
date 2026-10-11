@@ -1,22 +1,39 @@
 // ===================================================
-// MookyPlus - Content Script (Sauvegarde Rétablie)
+// MookyPlus - Content Script Global (Multi-Page & Persistant)
 // ===================================================
 
 if (!window.location.hostname.includes("mooky.live")) {
-  console.log("[MookyPlus] Site non compatible, désactivation du script.");
+  console.log("[MookyPlus] Site non compatible.");
 } else {
-  console.log("[MookyPlus] Site Mooky.live détecté ! Activation de MookyPlus.");
+  console.log("[MookyPlus] Actif sur cette URL :", window.location.href);
 
   const GITHUB_REMOTE_CSS_URL = "https://raw.githubusercontent.com/Snipepro08/MookyPlus/main/remote-theme.css";
   let matrixInterval = null;
+  let lastUrl = location.href;
 
-  // Initialisation initiale
-  document.addEventListener("DOMContentLoaded", () => {
+  // Lancement dès que le DOM commence à se charger
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initMookyPlus);
+  } else {
+    initMookyPlus();
+  }
+
+  function initMookyPlus() {
     fetchRemoteStyles();
     applyAllSavedSettings();
-  });
+    addCustomButton();
+  }
 
-  // Fonction centrale de restauration des paramètres
+  // Surveillance des changements d'URL internes (SPA/Navigation dynamique)
+  new MutationObserver(() => {
+    if (location.href !== lastUrl) {
+      lastUrl = location.href;
+      setTimeout(applyAllSavedSettings, 150);
+    }
+    addCustomButton();
+  }).observe(document.body, { childList: true, subtree: true });
+
+  // Restauration globale des paramètres sauvegardés dans le navigateur
   function applyAllSavedSettings() {
     loadSavedCursor();
     loadSavedButtonPosition();
@@ -34,7 +51,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     }
   }
 
-  // 1. Styles distants depuis GitHub
+  // 1. Injections des styles distants (GitHub)
   async function fetchRemoteStyles() {
     try {
       const response = await fetch(`${GITHUB_REMOTE_CSS_URL}?t=${Date.now()}`);
@@ -49,14 +66,13 @@ if (!window.location.hostname.includes("mooky.live")) {
         styleTag.innerHTML = cssText;
       }
     } catch (error) {
-      console.warn("[MookyPlus] Impossible de charger les styles distants :", error);
+      console.warn("[MookyPlus] Erreur chargement styles distants :", error);
     }
   }
 
-  // 2. Arrière-plan Personnalisé
+  // 2. Gestion de l'Arrière-plan
   function setAndSaveBackground(bgValue, save = true) {
     if (save) disableMatrixEffect(true);
-
     const targets = [document.body, document.querySelector('.desktop-shell'), document.querySelector('.app-shell')];
 
     if (bgValue === "none") {
@@ -80,10 +96,9 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (savedBg) setAndSaveBackground(savedBg, false);
   }
 
-  // 3. Curseur Personnalisé
+  // 3. Curseurs Personnalisés
   function setAndSaveCursor(cursorType, customUrl = "") {
     let cursorStyle = "auto";
-
     switch (cursorType) {
       case "cyber":
         cursorStyle = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%2300f3ff' stroke='%23000' stroke-width='1.5'><polygon points='0,0 0,18 5,14 8,21 12,19 9,13 16,13'/></svg>"), auto`;
@@ -91,24 +106,15 @@ if (!window.location.hostname.includes("mooky.live")) {
       case "neon":
         cursorStyle = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='%23ff007f' stroke='%23fff' stroke-width='1.5'><polygon points='0,0 0,18 5,14 8,21 12,19 9,13 16,13'/></svg>"), auto`;
         break;
-      case "crosshair":
-        cursorStyle = "crosshair";
-        break;
-      case "custom":
-        if (customUrl) cursorStyle = `url('${customUrl}'), auto`;
-        break;
-      case "reset":
-      default:
-        cursorStyle = "auto";
-        break;
+      case "crosshair": cursorStyle = "crosshair"; break;
+      case "custom": if (customUrl) cursorStyle = `url('${customUrl}'), auto`; break;
+      default: cursorStyle = "auto"; break;
     }
 
     const styleTag = document.getElementById("mooky-cursor-style") || document.createElement("style");
     styleTag.id = "mooky-cursor-style";
     styleTag.innerHTML = `* { cursor: ${cursorStyle} !important; }`;
-    if (!document.getElementById("mooky-cursor-style")) {
-      document.head.appendChild(styleTag);
-    }
+    if (!document.getElementById("mooky-cursor-style")) document.head.appendChild(styleTag);
 
     if (cursorType === "reset") {
       localStorage.removeItem("mookyplus_cursor_type");
@@ -171,11 +177,9 @@ if (!window.location.hostname.includes("mooky.live")) {
   // 5. Mode Absolute Minimal
   function enableAbsoluteMinimal(save = true) {
     if (save) localStorage.setItem("mookyplus_absolute_minimal", "true");
-
     for (let i = 0; i < document.styleSheets.length; i++) {
       try { document.styleSheets[i].disabled = true; } catch (e) {}
     }
-
     const modal = document.getElementById("mookyplus-modal");
     if (modal) modal.style.display = "none";
 
@@ -198,7 +202,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (restoreBtn) restoreBtn.remove();
   }
 
-  // 6. Effet Matrix Animé
+  // 6. Pluie de Code Matrix Animée
   function enableMatrixEffect(save = true) {
     if (save) localStorage.setItem("mookyplus_matrix_enabled", "true");
     disableMatrixEffect(false);
@@ -251,7 +255,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (canvas) canvas.remove();
   }
 
-  // 7. Modale de Configuration
+  // 7. Modale de Configuration UI
   function toggleMookyPlusModal() {
     let modal = document.getElementById("mookyplus-modal");
     if (modal) {
@@ -262,14 +266,12 @@ if (!window.location.hostname.includes("mooky.live")) {
     modal = document.createElement("div");
     modal.id = "mookyplus-modal";
     modal.className = "mookyplus-modal-overlay";
-
     modal.innerHTML = `
       <div class="mookyplus-modal-content">
         <div class="mookyplus-modal-header">
           <h2>✨ Configuration MookyPlus</h2>
           <button id="mookyplus-close-btn">&times;</button>
         </div>
-
         <div class="mookyplus-modal-body">
           <section class="mookyplus-section">
             <h3>🖱️ Curseur Personnalisé</h3>
@@ -285,7 +287,6 @@ if (!window.location.hostname.includes("mooky.live")) {
               <button id="mooky-apply-cursor-url" class="mookyplus-action-btn" style="width:auto;">Appliquer</button>
             </div>
           </section>
-
           <section class="mookyplus-section">
             <h3>⚡ Thèmes & Styles Spéciaux</h3>
             <div class="mookyplus-presets">
@@ -293,7 +294,6 @@ if (!window.location.hostname.includes("mooky.live")) {
               <button id="mooky-matrix-btn" class="mookyplus-action-btn" style="background-color: #000; color:#0f0; border: 1px solid #0f0;">🟢 Matrix Animé</button>
             </div>
           </section>
-
           <section class="mookyplus-section">
             <h3>🎨 Arrière-plan Personnalisé</h3>
             <div class="mookyplus-presets">
@@ -311,13 +311,11 @@ if (!window.location.hostname.includes("mooky.live")) {
             <label>Importer une image :</label>
             <input type="file" id="mooky-bg-file" accept="image/*">
           </section>
-
           <section class="mookyplus-section">
             <h3>🔀 Position du Bouton Flottant</h3>
             <button id="mooky-toggle-drag" class="mookyplus-action-btn">Activer le Déplacement Libre</button>
             <button id="mooky-reset-btn-pos" class="mookyplus-action-btn" style="background-color:#7f8c8d; margin-top:6px;">Réinitialiser la Position</button>
           </section>
-
           <section class="mookyplus-section">
             <h3>💻 Invite de Commandes MookyTerm</h3>
             <button id="mooky-open-terminal" class="mookyplus-action-btn" style="background-color:#00b894;">Ouvrir la Console</button>
@@ -384,7 +382,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     });
   }
 
-  // 8. Terminal MookyTerm
+  // 8. Console MookyTerm
   function toggleTerminal() {
     let term = document.getElementById("mooky-terminal");
     if (term) {
@@ -484,7 +482,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     }
   }
 
-  // 9. Glisser-déposer du Bouton M+
+  // 9. Glisser-déposer du Bouton Flottant
   function toggleButtonDragging(triggerBtn) {
     const btn = document.getElementById("mooky-plus-btn");
     if (!btn) return;
@@ -530,11 +528,4 @@ if (!window.location.hostname.includes("mooky.live")) {
       }
     };
   }
-
-  // Observateur continu : réinjecte le bouton M+ ET réapplique les paramètres sauvegardés si le site recharge dynamiquement du contenu
-  const observer = new MutationObserver(() => {
-    addCustomButton();
-    applyAllSavedSettings();
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
 }
