@@ -15,12 +15,11 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.mooky.live/*",
-        "*://mooky.live/*"
+        "*://*.mooky.live/*"
       ],
       "css": ["style.css"],
       "js": ["content.js"],
-      "run_at": "document_idle"
+      "run_at": "document_start"
     }
   ],
   "web_accessible_resources": [
