@@ -1,21 +1,22 @@
 // ===================================================
-// MookyPlus - Content Script avec Terminal & Fix Background
+// MookyPlus - Content Script (Option Absolute Minimal)
 // ===================================================
 
 console.log("[MookyPlus] Script chargé avec succès !");
 
 document.addEventListener("DOMContentLoaded", () => {
   loadSavedBackground();
+  if (localStorage.getItem("mookyplus_absolute_minimal") === "true") {
+    enableAbsoluteMinimal(false);
+  }
 });
 
-// Appliquer le fond sur le body et les conteneurs du site
+// Appliquer le fond
 function setAndSaveBackground(bgValue) {
   const targets = [document.body, document.querySelector('.desktop-shell'), document.querySelector('.app-shell')];
 
   if (bgValue === "none") {
-    targets.forEach(el => {
-      if (el) el.style.setProperty('background', 'none', 'important');
-    });
+    targets.forEach(el => { if (el) el.style.setProperty('background', 'none', 'important'); });
     localStorage.removeItem("mookyplus_custom_bg");
   } else {
     targets.forEach(el => {
@@ -32,12 +33,10 @@ function setAndSaveBackground(bgValue) {
 
 function loadSavedBackground() {
   const savedBg = localStorage.getItem("mookyplus_custom_bg");
-  if (savedBg) {
-    setAndSaveBackground(savedBg);
-  }
+  if (savedBg) setAndSaveBackground(savedBg);
 }
 
-// 1. Bouton MookyPlus
+// Bouton MookyPlus
 function addCustomButton() {
   const topActions = document.querySelector(".topbar .top-actions");
 
@@ -72,7 +71,49 @@ function addCustomButton() {
   }
 }
 
-// 2. Fenêtre Modale de Configuration
+// Fonction : Activer / Désactiver le mode "Absolute Minimal"
+function enableAbsoluteMinimal(save = true) {
+  if (save) localStorage.setItem("mookyplus_absolute_minimal", "true");
+
+  // Désactiver toutes les feuilles de style CSS
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    try {
+      document.styleSheets[i].disabled = true;
+    } catch (e) {
+      // Ignorer les erreurs de règles cross-origin
+    }
+  }
+
+  // Cacher la modale si elle est ouverte
+  const modal = document.getElementById("mookyplus-modal");
+  if (modal) modal.style.display = "none";
+
+  // Ajouter un bouton flottant brut pour pouvoir restaurer les styles
+  if (!document.getElementById("mooky-restore-styles-btn")) {
+    const restoreBtn = document.createElement("button");
+    restoreBtn.id = "mooky-restore-styles-btn";
+    restoreBtn.innerText = "⚠️ Quitter Absolute Minimal";
+    restoreBtn.style.cssText = "position:fixed; top:10px; right:10px; z-index:9999999; padding:8px 12px; background:#e74c3c; color:#fff; font-weight:bold; border:none; cursor:pointer;";
+    restoreBtn.addEventListener("click", () => disableAbsoluteMinimal());
+    document.body.appendChild(restoreBtn);
+  }
+}
+
+function disableAbsoluteMinimal() {
+  localStorage.removeItem("mookyplus_absolute_minimal");
+
+  // Réactiver toutes les feuilles de style CSS
+  for (let i = 0; i < document.styleSheets.length; i++) {
+    try {
+      document.styleSheets[i].disabled = false;
+    } catch (e) {}
+  }
+
+  const restoreBtn = document.getElementById("mooky-restore-styles-btn");
+  if (restoreBtn) restoreBtn.remove();
+}
+
+// Fenêtre Modale de Configuration
 function toggleMookyPlusModal() {
   let modal = document.getElementById("mookyplus-modal");
 
@@ -93,6 +134,12 @@ function toggleMookyPlusModal() {
       </div>
 
       <div class="mookyplus-modal-body">
+        <!-- Section Thèmes & Styles Minimalistes -->
+        <section class="mookyplus-section">
+          <h3>⚡ Thèmes & Styles Spéciaux</h3>
+          <button id="mooky-absolute-minimal-btn" class="mookyplus-action-btn" style="background-color: #34495e;">Mode Absolute Minimal (HTML Brut)</button>
+        </section>
+
         <!-- Section Arrière-plan -->
         <section class="mookyplus-section">
           <h3>🎨 Arrière-plan Personnalisé</h3>
@@ -135,6 +182,11 @@ function toggleMookyPlusModal() {
     modal.style.display = "none";
   });
 
+  // Événement du bouton Absolute Minimal
+  document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => {
+    enableAbsoluteMinimal();
+  });
+
   modal.querySelectorAll(".mookyplus-preset-btn").forEach((btn) => {
     btn.addEventListener("click", () => setAndSaveBackground(btn.getAttribute("data-bg")));
   });
@@ -161,7 +213,7 @@ function toggleMookyPlusModal() {
   });
 }
 
-// 3. Invite de Commandes (MookyTerm)
+// Invite de Commandes (MookyTerm)
 function toggleTerminal() {
   let term = document.getElementById("mooky-terminal");
   if (term) {
@@ -180,7 +232,7 @@ function toggleTerminal() {
       <button id="mooky-term-close">&times;</button>
     </div>
     <div class="mooky-term-output" id="mooky-term-output">
-      <div>Bienvenue sur <b>MookyTerm</b> ! Tapez <span class="term-highlight">/help</span> pour afficher la liste des commandes disponibles.</div>
+      <div>Bienvenue sur <b>MookyTerm</b> ! Tapez <span class="term-highlight">/help</span> pour afficher la liste des commandes.</div>
     </div>
     <div class="mooky-term-input-line">
       <span class="term-prompt">mooky></span>
@@ -204,7 +256,7 @@ function toggleTerminal() {
   });
 }
 
-// Logique des Commandes
+// Logique des Commandes (Ajout de /minimal)
 function executeCommand(cmd) {
   const output = document.getElementById("mooky-term-output");
   const log = (text, isHtml = false) => {
@@ -224,12 +276,17 @@ function executeCommand(cmd) {
     case "/help":
       log("📋 <b>Commandes disponibles :</b>", true);
       log("/help - Affiche ce menu d'aide");
+      log("/minimal - Active le mode Absolute Minimal");
       log("/clear - Efface le terminal");
       log("/stats - Affiche les statistiques de la page");
       log("/theme <dark|cyber|neon|reset> - Change le thème rapidement");
-      log("/matrix - Active/Désactive l'effet Matrix");
-      log("/quote - Affiche une citation motivante");
-      log("/cls - Raccourci pour /clear");
+      log("/matrix - Active l'effet Matrix");
+      log("/quote - Citation motivante");
+      break;
+
+    case "/minimal":
+      log("⚡ Mode Absolute Minimal activé.");
+      enableAbsoluteMinimal();
       break;
 
     case "/clear":
@@ -240,8 +297,8 @@ function executeCommand(cmd) {
     case "/stats":
       const postsCount = document.querySelectorAll("article.post").length;
       log(`📊 <b>Statistiques :</b>`, true);
-      log(`• Publications chargées : ${postsCount}`);
-      log(`• URL actuelle : ${window.location.href}`);
+      log(`• Publications : ${postsCount}`);
+      log(`• URL : ${window.location.href}`);
       break;
 
     case "/theme":
@@ -250,7 +307,7 @@ function executeCommand(cmd) {
       else if (theme === "cyber") setAndSaveBackground("linear-gradient(135deg, #050505, #00f3ff)");
       else if (theme === "neon") setAndSaveBackground("linear-gradient(135deg, #2b0036, #ff007f)");
       else if (theme === "reset") setAndSaveBackground("none");
-      else log("Thèmes disponibles : dark, cyber, neon, reset");
+      else log("Thèmes : dark, cyber, neon, reset");
       break;
 
     case "/matrix":
@@ -268,12 +325,12 @@ function executeCommand(cmd) {
       break;
 
     default:
-      log(`❌ Commande inconnue : "${cmd}". Tapez /help pour la liste.`);
+      log(`❌ Commande inconnue : "${cmd}". Tapez /help.`);
       break;
   }
 }
 
-// 4. Glisser-déposer (Drag & Drop)
+// Drag & Drop
 let dragEnabled = false;
 function toggleDragAndDrop(button) {
   dragEnabled = !dragEnabled;
