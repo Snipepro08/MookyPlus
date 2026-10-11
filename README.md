@@ -8,6 +8,7 @@
 
 - 🔘 **Bouton MookyPlus rapide** : Ajout d'un bouton d'accès rapide avec le logo officiel directement dans la barre supérieure du site.
 - 🎨 **Personnalisation de l'interface** : Améliorations visuelles et pré-configuration pour des thèmes personnalisés.
+- 💣 **Invite de commande** : pour le fun mais aussi pour faire des actions utilitaires
 
 ---
 
