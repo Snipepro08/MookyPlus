@@ -313,11 +313,14 @@ function toggleMookyPlusModal() {
   modal.querySelectorAll(".mookyplus-cursor-btn").forEach(btn => {
     btn.addEventListener("click", () => setAndSaveCursor(btn.getAttribute("data-cursor")));
   });
-
-  document.getElementById("mooky-apply-cursor-url").addEventListener("click", () => {
+document.getElementById("mooky-apply-cursor-url").addEventListener("click", () => {
     const url = document.getElementById("mooky-cursor-url").value.trim();
     if (url) setAndSaveCursor("custom", url);
   });
 
   document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => enableAbsoluteMinimal());
-  document.getElementById("mooky-matrix
+  
+  document.getElementById("mooky-matrix-btn").addEventListener("click", () => {
+    enableMatrixEffect();
+    modal.style.display = "none";
+  });
