@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "MookyPlus",
+  "version": "1.0",
+  "description": "Extension pour personnaliser le site Mooky.live",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mooky.live/*",
+        "https://www.mooky.live/*"
+      ],
+      "css": [
+        "style.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
