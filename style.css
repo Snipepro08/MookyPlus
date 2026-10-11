@@ -1,5 +1,5 @@
 /* ===================================================
-   MookyPlus - Style CSS (Bouton Flottant, Curseurs & Interfaces)
+   MookyPlus - Style CSS Complet (v2.0)
    =================================================== */
 
 /* Bouton Flottant Fixe en Bas à Droite */
@@ -34,7 +34,7 @@
   cursor: move !important;
 }
 
-/* Transparence des conteneurs pour le fond personnalisé */
+/* Transparence des conteneurs pour voir le fond personnalisé */
 .desktop-shell,
 .app-shell,
 .mooky-home-page {
@@ -48,7 +48,7 @@
   backdrop-filter: blur(8px);
 }
 
-/* Overlay & Modale MookyPlus */
+/* Modale MookyPlus */
 .mookyplus-modal-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -90,7 +90,7 @@
 
 #mooky-apply-gradient, .mookyplus-action-btn { width: 100%; padding: 10px; background-color: #7289da; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
-/* Styles de l'Console Terminal (MookyTerm) */
+/* Console MookyTerm */
 .mooky-terminal-window {
   position: fixed;
   bottom: 20px; right: 20px;
