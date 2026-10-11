@@ -1,0 +1,39 @@
+/* ===================================================
+   MookyPlus - Styles CSS
+   =================================================== */
+
+/* Variables de couleurs personnalisées */
+:root {
+  --mooky-plus-main-color: #7289da;
+  --mooky-plus-bg-dark: #121212;
+}
+
+/* Exemple 1 : Changer la couleur d'arrière-plan globale si besoin */
+/*
+body {
+  background-color: var(--mooky-plus-bg-dark) !important;
+}
+*/
+
+/* Exemple 2 : Masquer un élément indésirable (remplace le sélecteur par la vraie classe du site) */
+.ads-banner,
+.mooky-promo-box {
+  display: none !important;
+}
+
+/* Style de test pour vérifier que le CSS est bien chargé */
+body::before {
+  content: "MookyPlus Actif";
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background-color: #222;
+  color: #00ffcc;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: sans-serif;
+  z-index: 999999;
+  pointer-events: none;
+  opacity: 0.8;
+}
