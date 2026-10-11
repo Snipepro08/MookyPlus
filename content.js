@@ -1,5 +1,5 @@
 // ===================================================
-// MookyPlus - Content Script Complet (v2.0)
+// MookyPlus - Content Script (Code Complet Correct)
 // ===================================================
 
 console.log("[MookyPlus] Script chargé avec succès !");
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Charger le CSS distant de GitHub
+// Charger le CSS distant depuis GitHub
 async function fetchRemoteStyles() {
   try {
     const response = await fetch(`${GITHUB_REMOTE_CSS_URL}?t=${Date.now()}`);
@@ -39,7 +39,7 @@ async function fetchRemoteStyles() {
 
 // 1. Gestion de l'Arrière-plan
 function setAndSaveBackground(bgValue) {
-  disableMatrixEffect(); // Coupe Matrix si on met un fond normal
+  disableMatrixEffect();
   const targets = [document.body, document.querySelector('.desktop-shell'), document.querySelector('.app-shell')];
 
   if (bgValue === "none") {
@@ -109,7 +109,7 @@ function loadSavedCursor() {
   if (savedType) setAndSaveCursor(savedType, savedUrl);
 }
 
-// 3. Bouton Flottant M+ (Bas à droite, persistant)
+// 3. Bouton Flottant M+
 function addCustomButton() {
   if (!document.getElementById("mooky-plus-btn")) {
     const customButton = document.createElement("a");
@@ -181,7 +181,7 @@ function disableAbsoluteMinimal() {
   if (restoreBtn) restoreBtn.remove();
 }
 
-// 5. Effet Matrix Animé Canvas
+// 5. Effet Matrix Animé
 function enableMatrixEffect() {
   disableMatrixEffect();
   const canvas = document.createElement("canvas");
@@ -231,7 +231,7 @@ function disableMatrixEffect() {
   if (canvas) canvas.remove();
 }
 
-// 6. Fenêtre Modale de Configuration
+// 6. Fenêtre Modale
 function toggleMookyPlusModal() {
   let modal = document.getElementById("mookyplus-modal");
   if (modal) {
@@ -308,19 +308,218 @@ function toggleMookyPlusModal() {
 
   document.body.appendChild(modal);
 
-  document.getElementById("mookyplus-close-btn").addEventListener("click", () => modal.style.display = "none");
-
-  modal.querySelectorAll(".mookyplus-cursor-btn").forEach(btn => {
-    btn.addEventListener("click", () => setAndSaveCursor(btn.getAttribute("data-cursor")));
+  document.getElementById("mookyplus-close-btn").addEventListener("click", () => {
+    modal.style.display = "none";
   });
-document.getElementById("mooky-apply-cursor-url").addEventListener("click", () => {
+
+  modal.querySelectorAll(".mookyplus-cursor-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setAndSaveCursor(btn.getAttribute("data-cursor"));
+    });
+  });
+
+  document.getElementById("mooky-apply-cursor-url").addEventListener("click", () => {
     const url = document.getElementById("mooky-cursor-url").value.trim();
     if (url) setAndSaveCursor("custom", url);
   });
 
-  document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => enableAbsoluteMinimal());
-  
+  document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => {
+    enableAbsoluteMinimal();
+  });
+
   document.getElementById("mooky-matrix-btn").addEventListener("click", () => {
     enableMatrixEffect();
     modal.style.display = "none";
   });
+
+  modal.querySelectorAll(".mookyplus-preset-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setAndSaveBackground(btn.getAttribute("data-bg"));
+    });
+  });
+
+  document.getElementById("mooky-apply-gradient").addEventListener("click", () => {
+    const c1 = document.getElementById("mooky-color1").value;
+    const c2 = document.getElementById("mooky-color2").value;
+    setAndSaveBackground(`linear-gradient(135deg, ${c1}, ${c2})`);
+  });
+
+  document.getElementById("mooky-bg-file").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setAndSaveBackground(`url('${event.target.result}')`);
+      reader.readAsDataURL(file);
+    }
+  });
+
+  document.getElementById("mooky-toggle-drag").addEventListener("click", (e) => {
+    toggleButtonDragging(e.target);
+  });
+
+  document.getElementById("mooky-reset-btn-pos").addEventListener("click", () => {
+    localStorage.removeItem("mookyplus_btn_pos");
+    const btn = document.getElementById("mooky-plus-btn");
+    if (btn) {
+      btn.style.left = "auto";
+      btn.style.top = "auto";
+      btn.style.bottom = "20px";
+      btn.style.right = "20px";
+    }
+  });
+
+  document.getElementById("mooky-open-terminal").addEventListener("click", () => {
+    modal.style.display = "none";
+    toggleTerminal();
+  });
+}
+
+// 7. Console Terminal
+function toggleTerminal() {
+  let term = document.getElementById("mooky-terminal");
+  if (term) {
+    term.style.display = term.style.display === "none" ? "flex" : "none";
+    if (term.style.display === "flex") document.getElementById("mooky-term-input").focus();
+    return;
+  }
+
+  term = document.createElement("div");
+  term.id = "mooky-terminal";
+  term.className = "mooky-terminal-window";
+  term.innerHTML = `
+    <div class="mooky-term-header">
+      <span>>_ MookyTerm v1.0</span>
+      <button id="mooky-term-close">&times;</button>
+    </div>
+    <div class="mooky-term-output" id="mooky-term-output">
+      <div>Bienvenue sur <b>MookyTerm</b> ! Tapez <span class="term-highlight">/help</span>.</div>
+    </div>
+    <div class="mooky-term-input-line">
+      <span class="term-prompt">mooky></span>
+      <input type="text" id="mooky-term-input" placeholder="Saisir une commande..." autocomplete="off">
+    </div>
+  `;
+
+  document.body.appendChild(term);
+  document.getElementById("mooky-term-close").addEventListener("click", () => term.style.display = "none");
+
+  const input = document.getElementById("mooky-term-input");
+  input.focus();
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const cmd = input.value.trim();
+      if (cmd) executeCommand(cmd);
+      input.value = "";
+    }
+  });
+}
+
+function executeCommand(cmd) {
+  const output = document.getElementById("mooky-term-output");
+  const log = (text, isHtml = false) => {
+    const line = document.createElement("div");
+    if (isHtml) line.innerHTML = text; else line.textContent = text;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  };
+
+  log(`mooky> ${cmd}`);
+  const parts = cmd.split(" ");
+  const mainCmd = parts[0].toLowerCase();
+
+  switch (mainCmd) {
+    case "/help":
+      log("📋 <b>Commandes :</b> /help, /cursor, /minimal, /matrix, /clear, /stats, /theme", true);
+      break;
+    case "/cursor":
+      if (["cyber", "neon", "crosshair", "reset"].includes(parts[1])) {
+        setAndSaveCursor(parts[1]);
+        log(`🖱️ Curseur mis à jour : ${parts[1]}`);
+      } else {
+        log("Usage: /cursor <cyber|neon|crosshair|reset>");
+      }
+      break;
+    case "/minimal":
+      enableAbsoluteMinimal();
+      log("⚡ Mode Absolute Minimal activé.");
+      break;
+    case "/matrix":
+      if (document.getElementById("mooky-matrix-canvas")) {
+        disableMatrixEffect();
+        log("🔴 Matrix désactivé.");
+      } else {
+        enableMatrixEffect();
+        log("🟢 Matrix activé !");
+      }
+      break;
+    case "/clear":
+    case "/cls":
+      output.innerHTML = "";
+      break;
+    case "/stats":
+      log(`📊 Posts sur la page : ${document.querySelectorAll("article.post").length}`);
+      break;
+    case "/theme":
+      const t = parts[1];
+      if (t === "dark") setAndSaveBackground("linear-gradient(135deg, #121212, #1f1f1f)");
+      else if (t === "cyber") setAndSaveBackground("linear-gradient(135deg, #050505, #00f3ff)");
+      else if (t === "neon") setAndSaveBackground("linear-gradient(135deg, #2b0036, #ff007f)");
+      else if (t === "reset") setAndSaveBackground("none");
+      else log("Thèmes : dark, cyber, neon, reset");
+      break;
+    default:
+      log(`❌ Commande inconnue. Tapez /help.`);
+      break;
+  }
+}
+
+// 8. Glisser-déposer du Bouton
+function toggleButtonDragging(triggerBtn) {
+  const btn = document.getElementById("mooky-plus-btn");
+  if (!btn) return;
+
+  if (!btn.classList.contains("mookyplus-dragging-enabled")) {
+    btn.classList.add("mookyplus-dragging-enabled");
+    triggerBtn.innerText = "Désactiver le Déplacement";
+    triggerBtn.style.backgroundColor = "#e74c3c";
+    btn.addEventListener("mousedown", startDragButton);
+  } else {
+    btn.classList.remove("mookyplus-dragging-enabled");
+    triggerBtn.innerText = "Activer le Déplacement Libre";
+    triggerBtn.style.backgroundColor = "#7289da";
+    btn.removeEventListener("mousedown", startDragButton);
+  }
+}
+
+function startDragButton(e) {
+  const btn = document.getElementById("mooky-plus-btn");
+  let shiftX = e.clientX - btn.getBoundingClientRect().left;
+  let shiftY = e.clientY - btn.getBoundingClientRect().top;
+  let moved = false;
+
+  function moveAt(pageX, pageY) {
+    btn.style.left = (pageX - shiftX) + "px";
+    btn.style.top = (pageY - shiftY) + "px";
+    btn.style.bottom = "auto";
+    btn.style.right = "auto";
+  }
+
+  function onMouseMove(event) {
+    moved = true;
+    moveAt(event.pageX, event.pageY);
+  }
+
+  document.addEventListener("mousemove", onMouseMove);
+  document.onmouseup = function () {
+    document.removeEventListener("mousemove", onMouseMove);
+    document.onmouseup = null;
+    if (moved) {
+      btn.dataset.wasDragged = "true";
+      localStorage.setItem("mookyplus_btn_pos", JSON.stringify({ left: btn.style.left, top: btn.style.top }));
+    }
+  };
+}
+
+const observer = new MutationObserver(addCustomButton);
+observer.observe(document.body, { childList: true, subtree: true });
