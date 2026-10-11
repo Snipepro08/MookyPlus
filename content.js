@@ -1,8 +1,7 @@
 // ===================================================
-// MookyPlus - Content Script (Version Complète)
+// MookyPlus - Content Script (Persistance des Styles)
 // ===================================================
 
-// Détection de l'URL : s'exécute uniquement si le site est mooky.live
 if (!window.location.hostname.includes("mooky.live")) {
   console.log("[MookyPlus] Site non compatible, désactivation du script.");
 } else {
@@ -11,18 +10,25 @@ if (!window.location.hostname.includes("mooky.live")) {
   const GITHUB_REMOTE_CSS_URL = "https://raw.githubusercontent.com/Snipepro08/MookyPlus/main/remote-theme.css";
   let matrixInterval = null;
 
-  // Initialisation au chargement de la page
+  // Initialisation et restauration automatique des paramètres au chargement
   document.addEventListener("DOMContentLoaded", () => {
     fetchRemoteStyles();
-    loadSavedBackground();
     loadSavedCursor();
     loadSavedButtonPosition();
+
+    // Restauration prioritaire des modes spéciaux
+    if (localStorage.getItem("mookyplus_matrix_enabled") === "true") {
+      enableMatrixEffect(false);
+    } else {
+      loadSavedBackground();
+    }
+
     if (localStorage.getItem("mookyplus_absolute_minimal") === "true") {
       enableAbsoluteMinimal(false);
     }
   });
 
-  // 1. Charger le CSS distant depuis GitHub
+  // 1. Styles distants depuis GitHub
   async function fetchRemoteStyles() {
     try {
       const response = await fetch(`${GITHUB_REMOTE_CSS_URL}?t=${Date.now()}`);
@@ -35,21 +41,20 @@ if (!window.location.hostname.includes("mooky.live")) {
           document.head.appendChild(styleTag);
         }
         styleTag.innerHTML = cssText;
-        console.log("[MookyPlus] Styles distants GitHub appliqués !");
       }
     } catch (error) {
       console.warn("[MookyPlus] Impossible de charger les styles distants :", error);
     }
   }
 
-  // 2. Gestion de l'Arrière-plan
-  function setAndSaveBackground(bgValue) {
-    disableMatrixEffect(); // Désactive Matrix si on applique un fond classique
+  // 2. Arrière-plan Personnalisé
+  function setAndSaveBackground(bgValue, save = true) {
+    disableMatrixEffect(true); // Désactive Matrix si on applique un fond normal
     const targets = [document.body, document.querySelector('.desktop-shell'), document.querySelector('.app-shell')];
 
     if (bgValue === "none") {
       targets.forEach(el => { if (el) el.style.setProperty('background', 'none', 'important'); });
-      localStorage.removeItem("mookyplus_custom_bg");
+      if (save) localStorage.removeItem("mookyplus_custom_bg");
     } else {
       targets.forEach(el => {
         if (el) {
@@ -59,16 +64,16 @@ if (!window.location.hostname.includes("mooky.live")) {
           el.style.setProperty('background-position', 'center', 'important');
         }
       });
-      localStorage.setItem("mookyplus_custom_bg", bgValue);
+      if (save) localStorage.setItem("mookyplus_custom_bg", bgValue);
     }
   }
 
   function loadSavedBackground() {
     const savedBg = localStorage.getItem("mookyplus_custom_bg");
-    if (savedBg) setAndSaveBackground(savedBg);
+    if (savedBg) setAndSaveBackground(savedBg, false);
   }
 
-  // 3. Gestion du Curseur Personnalisé
+  // 3. Curseur Personnalisé
   function setAndSaveCursor(cursorType, customUrl = "") {
     let cursorStyle = "auto";
 
@@ -156,7 +161,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     }
   }
 
-  // 5. Mode Absolute Minimal
+  // 5. Mode Absolute Minimal (Sauvegardé)
   function enableAbsoluteMinimal(save = true) {
     if (save) localStorage.setItem("mookyplus_absolute_minimal", "true");
 
@@ -186,9 +191,11 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (restoreBtn) restoreBtn.remove();
   }
 
-  // 6. Effet Matrix Animé Canvas
-  function enableMatrixEffect() {
-    disableMatrixEffect();
+  // 6. Effet Matrix Animé (Sauvegardé)
+  function enableMatrixEffect(save = true) {
+    if (save) localStorage.setItem("mookyplus_matrix_enabled", "true");
+    disableMatrixEffect(false);
+
     const canvas = document.createElement("canvas");
     canvas.id = "mooky-matrix-canvas";
     canvas.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-1; pointer-events:none;";
@@ -227,7 +234,8 @@ if (!window.location.hostname.includes("mooky.live")) {
     });
   }
 
-  function disableMatrixEffect() {
+  function disableMatrixEffect(clearStorage = true) {
+    if (clearStorage) localStorage.removeItem("mookyplus_matrix_enabled");
     if (matrixInterval) {
       clearInterval(matrixInterval);
       matrixInterval = null;
@@ -318,9 +326,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     });
 
     modal.querySelectorAll(".mookyplus-cursor-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setAndSaveCursor(btn.getAttribute("data-cursor"));
-      });
+      btn.addEventListener("click", () => setAndSaveCursor(btn.getAttribute("data-cursor")));
     });
 
     document.getElementById("mooky-apply-cursor-url").addEventListener("click", () => {
@@ -328,9 +334,7 @@ if (!window.location.hostname.includes("mooky.live")) {
       if (url) setAndSaveCursor("custom", url);
     });
 
-    document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => {
-      enableAbsoluteMinimal();
-    });
+    document.getElementById("mooky-absolute-minimal-btn").addEventListener("click", () => enableAbsoluteMinimal());
 
     document.getElementById("mooky-matrix-btn").addEventListener("click", () => {
       enableMatrixEffect();
@@ -338,9 +342,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     });
 
     modal.querySelectorAll(".mookyplus-preset-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        setAndSaveBackground(btn.getAttribute("data-bg"));
-      });
+      btn.addEventListener("click", () => setAndSaveBackground(btn.getAttribute("data-bg")));
     });
 
     document.getElementById("mooky-apply-gradient").addEventListener("click", () => {
@@ -358,9 +360,7 @@ if (!window.location.hostname.includes("mooky.live")) {
       }
     });
 
-    document.getElementById("mooky-toggle-drag").addEventListener("click", (e) => {
-      toggleButtonDragging(e.target);
-    });
+    document.getElementById("mooky-toggle-drag").addEventListener("click", (e) => toggleButtonDragging(e.target));
 
     document.getElementById("mooky-reset-btn-pos").addEventListener("click", () => {
       localStorage.removeItem("mookyplus_btn_pos");
@@ -479,7 +479,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     }
   }
 
-  // 9. Glisser-déposer du Bouton
+  // 9. Glisser-déposer du Bouton M+
   function toggleButtonDragging(triggerBtn) {
     const btn = document.getElementById("mooky-plus-btn");
     if (!btn) return;
