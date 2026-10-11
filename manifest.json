@@ -1,37 +1,32 @@
 {
   "manifest_version": 3,
   "name": "MookyPlus",
-  "version": "1.0",
-  "description": "Extension pour personnaliser l'interface du site Mooky.live",
-  "icons": {
-    "16": "logo.jpg",
-    "48": "logo.jpg",
-    "128": "logo.jpg"
+  "version": "2.0",
+  "description": "Customisation et fonctionnalités avancées pour Mooky.live",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.mooky.live/*"
+  ],
+  "action": {
+    "default_title": "MookyPlus"
   },
   "content_scripts": [
     {
       "matches": [
-        "https://mooky.live/*",
-        "https://www.mooky.live/*"
+        "*://*.mooky.live/*",
+        "*://mooky.live/*"
       ],
-      "css": [
-        "style.css"
-      ],
-      "js": [
-        "content.js"
-      ],
+      "css": ["style.css"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": [
-        "logo.jpg"
-      ],
-      "matches": [
-        "https://mooky.live/*",
-        "https://www.mooky.live/*"
-      ]
+      "resources": ["logo.jpg"],
+      "matches": ["*://*.mooky.live/*"]
     }
   ]
 }
