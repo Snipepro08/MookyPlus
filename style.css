@@ -1,153 +1,108 @@
 /* ===================================================
-   MookyPlus - Style CSS pour la modale & l'interface
+   MookyPlus - Style CSS Fix Background & Terminal
    =================================================== */
 
-/* Overlay de la fenêtre modale */
+/* Transparence des conteneurs pour voir le fond personnalisé */
+.desktop-shell,
+.app-shell,
+.mooky-home-page {
+  background-color: transparent !important;
+}
+
+/* Transparence des cartes pour laisser passer le fond */
+.post-pro-card,
+.composer-card,
+.home-online-bar-v437 {
+  background-color: rgba(26, 28, 35, 0.85) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Overlay & Modale MookyPlus */
 .mookyplus-modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   background-color: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(5px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  display: flex; justify-content: center; align-items: center;
   z-index: 999999;
 }
 
-/* Conteneur principal */
 .mookyplus-modal-content {
-  background-color: #1a1c23;
-  color: #ffffff;
-  width: 90%;
-  max-width: 500px;
-  border-radius: 12px;
-  border: 1px solid #2d323f;
+  background-color: #1a1c23; color: #ffffff;
+  width: 90%; max-width: 500px;
+  border-radius: 12px; border: 1px solid #2d323f;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  font-family: sans-serif;
+  overflow: hidden; font-family: sans-serif;
 }
 
-/* En-tête */
 .mookyplus-modal-header {
-  padding: 15px 20px;
-  background-color: #222531;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 15px 20px; background-color: #222531;
+  display: flex; justify-content: space-between; align-items: center;
   border-bottom: 1px solid #2d323f;
 }
 
-.mookyplus-modal-header h2 {
-  margin: 0;
-  font-size: 18px;
+.mookyplus-modal-header h2 { margin: 0; font-size: 18px; }
+#mookyplus-close-btn { background: none; border: none; color: #aaa; font-size: 24px; cursor: pointer; }
+
+.mookyplus-modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+.mookyplus-section { margin-bottom: 20px; }
+.mookyplus-section h3 { margin: 0 0 10px; font-size: 15px; color: #7289da; }
+.mookyplus-section label { display: block; margin: 8px 0 4px; font-size: 12px; color: #ccc; }
+
+.mookyplus-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mookyplus-preset-btn { padding: 8px; background: #2a2e3d; color: #fff; border: 1px solid #3d4356; border-radius: 6px; cursor: pointer; font-size: 12px; }
+
+.mookyplus-gradient-picker { display: flex; gap: 10px; align-items: center; }
+.mookyplus-gradient-picker input[type="color"] { border: none; background: none; width: 40px; height: 40px; cursor: pointer; }
+
+#mooky-apply-gradient, .mookyplus-action-btn { width: 100%; padding: 10px; background-color: #7289da; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+/* Styles de l'Invite de Commandes (MookyTerm) */
+.mooky-terminal-window {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  width: 420px; height: 280px;
+  background-color: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  display: flex; flex-direction: column;
+  z-index: 999999;
+  font-family: 'Courier New', Courier, monospace;
+  color: #00ffcc;
 }
 
-#mookyplus-close-btn {
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 24px;
-  cursor: pointer;
+.mooky-term-header {
+  background-color: #161b22;
+  padding: 8px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid #30363d;
+  font-size: 12px; color: #8b949e;
 }
 
-#mookyplus-close-btn:hover {
-  color: #fff;
+#mooky-term-close { background: none; border: none; color: #8b949e; cursor: pointer; font-size: 18px; }
+
+.mooky-term-output {
+  flex: 1; padding: 10px;
+  overflow-y: auto; font-size: 13px; line-height: 1.4;
 }
 
-/* Corps */
-.mookyplus-modal-body {
-  padding: 20px;
-  max-height: 70vh;
-  overflow-y: auto;
+.term-highlight { color: #ff79c6; font-weight: bold; }
+
+.mooky-term-input-line {
+  display: flex; align-items: center;
+  padding: 8px 10px; background-color: #161b22;
+  border-top: 1px solid #30363d;
 }
 
-.mookyplus-section {
-  margin-bottom: 25px;
+.term-prompt { color: #79c0ff; font-weight: bold; margin-right: 8px; }
+
+#mooky-term-input {
+  flex: 1; background: none; border: none;
+  color: #58a6ff; font-family: inherit; font-size: 13px;
+  outline: none;
 }
 
-.mookyplus-section h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #7289da;
-}
-
-.mookyplus-section label {
-  display: block;
-  margin: 10px 0 5px;
-  font-size: 13px;
-  color: #ccc;
-}
-
-/* Boutons de présets */
-.mookyplus-presets {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.mookyplus-preset-btn {
-  padding: 8px;
-  background: #2a2e3d;
-  color: #fff;
-  border: 1px solid #3d4356;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.mookyplus-preset-btn:hover {
-  border-color: #7289da;
-}
-
-/* Dégradé & Formulaires */
-.mookyplus-gradient-picker {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.mookyplus-gradient-picker input[type="color"] {
-  border: none;
-  background: none;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-}
-
-#mooky-apply-gradient, .mookyplus-action-btn {
-  flex: 1;
-  padding: 10px;
-  background-color: #7289da;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-#mooky-bg-file {
-  width: 100%;
-  margin-top: 5px;
-  font-size: 12px;
-}
-
-.mookyplus-tip {
-  font-size: 12px;
-  color: #888;
-  margin-bottom: 10px;
-}
-
-/* Style pendant le Drag & Drop */
-.mookyplus-draggable {
-  outline: 2px dashed #7289da !important;
-  cursor: grab !important;
-}
-
-.mookyplus-draggable:active {
-  cursor: grabbing !important;
-  opacity: 0.6;
-}
+/* Drag & Drop Highlight */
+.mookyplus-draggable { outline: 2px dashed #7289da !important; cursor: grab !important; }
