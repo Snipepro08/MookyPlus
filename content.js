@@ -1,43 +1,55 @@
 // ===================================================
-// MookyPlus - Content Script
+// MookyPlus - Content Script avec Logo
 // ===================================================
 
 console.log("[MookyPlus] Le script est bien injecté sur Mooky.live !");
 
-// Fonction pour ajouter le bouton dans la topbar
 function addCustomButton() {
-  // On cible la zone des actions dans la barre du haut
   const topActions = document.querySelector('.topbar .top-actions');
 
-  // Vérifie que la zone existe et qu'on n'a pas déjà ajouté le bouton
   if (topActions && !document.getElementById('mooky-plus-btn')) {
     
-    // 1. Création du bouton sous forme de "pill" (comme les autres boutons du site)
+    // 1. Création du lien / bouton
     const customButton = document.createElement('a');
     customButton.id = 'mooky-plus-btn';
     customButton.className = 'top-pill home-top-action';
-    customButton.style.borderRadius = '15px !important';
+    customButton.style.borderRadius = '15px';
     customButton.style.backgroundColor = '#7289da';
     customButton.style.color = '#ffffff';
     customButton.style.cursor = 'pointer';
     customButton.style.display = 'flex';
     customButton.style.alignItems = 'center';
-    customButton.style.justifyContent = 'center';
-    customButton.style.padding = '0 12px';
+    customButton.style.gap = '6px';
+    customButton.style.padding = '4px 10px';
     customButton.style.fontWeight = 'bold';
     customButton.style.fontSize = '13px';
-    customButton.innerText = 'M+'; // Texte court ou icône
-    
-    // Titre au survol
+    customButton.style.textDecoration = 'none';
     customButton.title = 'MookyPlus Actif';
 
-    // 2. Action au clic sur le bouton
+    // 2. Création de la balise <img> pour le logo
+    const logoImg = document.createElement('img');
+    logoImg.src = chrome.runtime.getURL('logo.jpg'); // Charge logo.jpg depuis l'extension
+    logoImg.alt = 'MookyPlus';
+    logoImg.style.width = '20px';
+    logoImg.style.height = '20px';
+    logoImg.style.borderRadius = '50%';
+    logoImg.style.objectFit = 'cover';
+
+    // 3. Texte du bouton
+    const btnText = document.createElement('span');
+    btnText.innerText = 'M+';
+
+    // Assemblage
+    customButton.appendChild(logoImg);
+    customButton.appendChild(btnText);
+
+    // 4. Action au clic
     customButton.addEventListener('click', (e) => {
       e.preventDefault();
-      alert('Bravo ! Ton extension MookyPlus fonctionne à merveille sur Mooky !');
+      alert('MookyPlus est actif !');
     });
 
-    // 3. Insertion du bouton avant la photo de profil (ou à la fin avec appendChild)
+    // 5. Insertion dans la barre du haut
     const avatarLink = topActions.querySelector('.top-avatar-link');
     if (avatarLink) {
       topActions.insertBefore(customButton, avatarLink);
@@ -45,17 +57,10 @@ function addCustomButton() {
       topActions.appendChild(customButton);
     }
     
-    console.log("[MookyPlus] Bouton ajouté dans la topbar avec succès !");
+    console.log("[MookyPlus] Bouton avec logo ajouté !");
   }
 }
 
-// Observer pour s'assurer que le bouton s'ajoute dynamiquement
-const observer = new MutationObserver(() => {
-  addCustomButton();
-});
-
-// Lancer l'observation de la page
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
+// Observer pour le rechargement dynamique
+const observer = new MutationObserver(addCustomButton);
+observer.observe(document.body, { childList: true, subtree: true });
