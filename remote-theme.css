@@ -1,0 +1,9 @@
+/* ===================================================
+   MookyPlus - Styles Distants Dynamiques (GitHub)
+   =================================================== */
+
+/* Exemple : Correctif d'affichage ou style néon distant */
+.mookyplus-remote-badge {
+  border: 1px solid #00f3ff !important;
+  box-shadow: 0 0 10px #00f3ff !important;
+}
