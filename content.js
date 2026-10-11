@@ -1,5 +1,5 @@
 // ===================================================
-// MookyPlus - Content Script (Persistance des Styles)
+// MookyPlus - Content Script (Sauvegarde Rétablie)
 // ===================================================
 
 if (!window.location.hostname.includes("mooky.live")) {
@@ -10,15 +10,21 @@ if (!window.location.hostname.includes("mooky.live")) {
   const GITHUB_REMOTE_CSS_URL = "https://raw.githubusercontent.com/Snipepro08/MookyPlus/main/remote-theme.css";
   let matrixInterval = null;
 
-  // Initialisation et restauration automatique des paramètres au chargement
+  // Initialisation initiale
   document.addEventListener("DOMContentLoaded", () => {
     fetchRemoteStyles();
+    applyAllSavedSettings();
+  });
+
+  // Fonction centrale de restauration des paramètres
+  function applyAllSavedSettings() {
     loadSavedCursor();
     loadSavedButtonPosition();
 
-    // Restauration prioritaire des modes spéciaux
     if (localStorage.getItem("mookyplus_matrix_enabled") === "true") {
-      enableMatrixEffect(false);
+      if (!document.getElementById("mooky-matrix-canvas")) {
+        enableMatrixEffect(false);
+      }
     } else {
       loadSavedBackground();
     }
@@ -26,7 +32,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (localStorage.getItem("mookyplus_absolute_minimal") === "true") {
       enableAbsoluteMinimal(false);
     }
-  });
+  }
 
   // 1. Styles distants depuis GitHub
   async function fetchRemoteStyles() {
@@ -49,7 +55,8 @@ if (!window.location.hostname.includes("mooky.live")) {
 
   // 2. Arrière-plan Personnalisé
   function setAndSaveBackground(bgValue, save = true) {
-    disableMatrixEffect(true); // Désactive Matrix si on applique un fond normal
+    if (save) disableMatrixEffect(true);
+
     const targets = [document.body, document.querySelector('.desktop-shell'), document.querySelector('.app-shell')];
 
     if (bgValue === "none") {
@@ -161,7 +168,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     }
   }
 
-  // 5. Mode Absolute Minimal (Sauvegardé)
+  // 5. Mode Absolute Minimal
   function enableAbsoluteMinimal(save = true) {
     if (save) localStorage.setItem("mookyplus_absolute_minimal", "true");
 
@@ -191,7 +198,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (restoreBtn) restoreBtn.remove();
   }
 
-  // 6. Effet Matrix Animé (Sauvegardé)
+  // 6. Effet Matrix Animé
   function enableMatrixEffect(save = true) {
     if (save) localStorage.setItem("mookyplus_matrix_enabled", "true");
     disableMatrixEffect(false);
@@ -244,7 +251,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     if (canvas) canvas.remove();
   }
 
-  // 7. Fenêtre Modale de Configuration
+  // 7. Modale de Configuration
   function toggleMookyPlusModal() {
     let modal = document.getElementById("mookyplus-modal");
     if (modal) {
@@ -321,9 +328,7 @@ if (!window.location.hostname.includes("mooky.live")) {
 
     document.body.appendChild(modal);
 
-    document.getElementById("mookyplus-close-btn").addEventListener("click", () => {
-      modal.style.display = "none";
-    });
+    document.getElementById("mookyplus-close-btn").addEventListener("click", () => modal.style.display = "none");
 
     modal.querySelectorAll(".mookyplus-cursor-btn").forEach((btn) => {
       btn.addEventListener("click", () => setAndSaveCursor(btn.getAttribute("data-cursor")));
@@ -379,7 +384,7 @@ if (!window.location.hostname.includes("mooky.live")) {
     });
   }
 
-  // 8. Console Terminal (MookyTerm)
+  // 8. Terminal MookyTerm
   function toggleTerminal() {
     let term = document.getElementById("mooky-terminal");
     if (term) {
@@ -526,7 +531,10 @@ if (!window.location.hostname.includes("mooky.live")) {
     };
   }
 
-  // Observateur pour maintenir l'injection du bouton M+
-  const observer = new MutationObserver(addCustomButton);
+  // Observateur continu : réinjecte le bouton M+ ET réapplique les paramètres sauvegardés si le site recharge dynamiquement du contenu
+  const observer = new MutationObserver(() => {
+    addCustomButton();
+    applyAllSavedSettings();
+  });
   observer.observe(document.body, { childList: true, subtree: true });
 }
